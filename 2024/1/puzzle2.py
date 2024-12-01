@@ -18,7 +18,7 @@ left_list = []
 right_list = []
 
 for line in input_data:
-    left, right = line.split("   ")
+    left, right = line.split()
     left_list.append(int(left))
     right_list.append(int(right))
 
