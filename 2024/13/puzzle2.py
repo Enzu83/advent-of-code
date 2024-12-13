@@ -27,7 +27,7 @@ input_data.pop()
 claws = [[]]
 
 for line in input_data:
-    if line.startswith("Button A") or line.startswith("Button B"):
+    if line.startswith("Button"):
         line = line[12:].split(", ")
         claws[-1].append((int(line[0]), int(line[1][2:])))
 
