@@ -29,13 +29,11 @@ claws = [[]]
 for line in input_data:
     if line.startswith("Button A") or line.startswith("Button B"):
         line = line[12:].split(", ")
-        claws[-1].append(int(line[0]))
-        claws[-1].append(int(line[1][2:]))
+        claws[-1].append((int(line[0]), int(line[1][2:])))
 
     elif line.startswith("Prize"):
         line = line[9:].split(", ")
-        claws[-1].append(int(line[0]))
-        claws[-1].append(int(line[1][2:]))
+        claws[-1].append((int(line[0]), int(line[1][2:])))
 
     else:
         claws.append([])
@@ -56,9 +54,7 @@ def getPrizeTokens(claw):
     If C is inversible, one solution S : S = C^(-1)*P
     """
 
-    button_a = (claw[0], claw[1])
-    button_b = (claw[2], claw[3])
-    prize = (claw[4], claw[5])
+    button_a, button_b, prize = claw
 
     ## solution computation
     det = button_a[0] * button_b[1] - button_a[1] * button_b[0]
