@@ -30,13 +30,6 @@ def computeNextSecret(secret):
 
     return secret
 
-def sumSecretsAfterSteps(secrets, steps):
-    for _ in range(steps):
-        for i, secret in enumerate(secrets):
-            secrets[i] = computeNextSecret(secret)
-    
-    return sum(secrets)
-
 def getSequencePrices(secret, steps):
     sequence_prices = {}
     sequence = []
@@ -52,12 +45,11 @@ def getSequencePrices(secret, steps):
 
         # update the prices if necessary
         if len(sequence) == 4 and tuple(sequence) not in sequence_prices:
-                sequence_prices[tuple(sequence)] = new_secret % 10
+            sequence_prices[tuple(sequence)] = new_secret % 10
             
         secret = new_secret
     
     return sequence_prices
-
 
 def findBestSequence(secrets, steps):
     all_sequence_prices = {secret: getSequencePrices(secret, steps) for secret in secrets}
@@ -65,13 +57,15 @@ def findBestSequence(secrets, steps):
 
     # iterate over all sequence prices for each secret number
     for sequence_prices in all_sequence_prices.values():
+        
+        # add each prices to the total
         for sequence, price in sequence_prices.items():
             if sequence not in prices:
                 prices[sequence] = price
             else:
                 prices[sequence] += price
 
-    return prices[max(prices, key= lambda x: prices[x])]
+    return max(prices.items(), key= lambda x: x[1])
 
 
 # Code
