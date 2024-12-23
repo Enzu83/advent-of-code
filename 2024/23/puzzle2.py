@@ -62,21 +62,28 @@ for line in input_data:
 
 # Functions
 
-def getConnectedTriplets(connections, pairs):
-    triplets = set()
+def getOneMoreTuples(connections, tuples):
+    one_more_tuples = set()
 
     for computer, linked_computers in connections.items():
-        for computer1, computer2 in pairs:
-            if computer != computer1 and computer != computer2 and (computer1 in linked_computers and computer2 in linked_computers):
-                triplets.add(tuple(sorted([computer, computer1, computer2])))
+        for connection_tuple in tuples:
+            if all(computer != tuple_computer and tuple_computer in linked_computers for tuple_computer in connection_tuple):
+                one_more_tuple = [computer] + list(connection_tuple)
+                one_more_tuples.add(tuple(sorted(one_more_tuple)))
     
-    return triplets
+    return one_more_tuples
 
-def sumTripletsWithComputer(triplets, computer_name):
-    return sum(1 for triplet in triplets if any(computer[0] == computer_name for computer in triplet))
+def getMaximumClique(connections, pairs):
+    tuples = getOneMoreTuples(connections, pairs)
+
+    while len(tuples) > 1:
+        tuples = getOneMoreTuples(connections, tuples)
+    
+    return sorted(list(tuples.pop()))
+
 
 # Code
 
-triplets = getConnectedTriplets(connections, pairs)
+maximum_clique = getMaximumClique(connections, pairs)
 
-print(sumTripletsWithComputer(triplets, 't'))
+print(",".join(maximum_clique))
