@@ -8,14 +8,29 @@ input_data = input_data.split('\n')
 
 
 # Input from file
-# input_data = open("input.txt").read().split('\n')
-# input_data.pop()
+input_data = open("input.txt").read().split('\n')
+input_data.pop()
 
 
 # Formatting
 
 num_grid = [['7', '8', '9'], ['4', '5', '6'], ['1', '2', '3'], [None, '0', 'A']]
 dir_grid = [[None, '^', 'A'], ['<', 'v', '>']]
+
+num_dir = {
+    '7': ">v",      '8': "<>v",     '9': "<v",
+    '4': ">^v",     '5': "<>^v",    '6': "<^v",
+    '1': ">^",      '2': "<>^v",    '3': "<^v",
+                    '0': ">^",      'A': "<^",
+}
+
+dir_seq = {
+    'A': {'A': [""], '^': ["<"], '>': ["v"], 'v': ["<v", "v<"], '<': ["<v<", "v<<"]},
+    '^': {'A': [">"], '^': [""], '>': [">v", "v>"], 'v': ["v"], '<': ["v<"]},
+    '>': {'A': ["^"], '^': ["<^", "^<"], '>': [""], 'v': ["<"], '<': ["<<"]},
+    'v': {'A': [">^", "^>"], '^': ["^"], '>': [">"], 'v': [""], '<': ["<"]},
+    '<': {'A': [">^>", ">>^"], '^': [">^"], '>': [">>"], 'v': [">"], '<': [""]},
+}
 
 dir_to_delta = {
     '>': (0, 1),
@@ -26,194 +41,118 @@ dir_to_delta = {
 
 # Functions
 
-"""def getSequence(start, end, grid):
-    # grid info
-    start = findPositionInGrid(start, grid)
-    end = findPositionInGrid(end, grid)
+def exploreSequences(dir_robots):
+    moves = {} # {02: "<vA<AA>>^A"}
 
-    delta = (end[0] - start[0], end[1] - start[1])
+    pos = ['A'] * (dir_robots + 1) # [dir_pos, num_pos]
 
-    # build sequence
-    sequence = "" # vertical first
-    sequence2 = "" # horizontal first
+    # dfs
+    stack = [(pos[0], 0)] # [(position, robot)]
 
-    # horizontal movement
-    if delta[0] > 0:
-        sequence += 'v' * delta[0]
-    elif delta[0] < 0:
-        sequence += '^' * (-delta[0])
+    while stack:
+        current_pos, robot = stack.pop()
 
-    # vertical movement
-    if delta[1] > 0:
-        sequence2 = '>' * delta[1] + sequence
-        sequence += '>' * delta[1]
-    elif delta[1] < 0:
-        sequence2 = '<' * (-delta[1]) + sequence
-        sequence += '<' * (-delta[1])
-        
+
+def findCoordinates(pos, grid):
+    for y in range(len(grid)):
+        for x, cell in enumerate(grid[y]):
+            if cell == pos:
+                return (y, x)
+
+def getPossibleDirections(grid, start, end):
+    possible_dirs = set()
+
+    start = findCoordinates(start, grid)
+    end = findCoordinates(end, grid)
+
+    dy = end[0] - start[0]
+    dx = end[1] - start[1]
+
+    if dy > 0:
+        possible_dirs.add('v')
+    elif dy < 0:
+        possible_dirs.add('^')
     
-    if validSequence(sequence, start, grid):
-        return sequence
-    else:
-        return sequence2
-
-
-def getCodeSequence(code, grid):
-    code = 'A' + code
-    sequence = ""
-
-    for i in range(len(code)-1):
-        sequence += getSequence(code[i], code[i+1], grid) + 'A'
+    if dx > 0:
+        possible_dirs.add('>')
+    elif dx < 0:
+        possible_dirs.add('<')
     
-    return sequence
+    return possible_dirs
 
-def getFullSequence(code):
-    sequence = getCodeSequence(code, num_grid)
+def nextPos(current, dir, grid):
+    coordinates = findCoordinates(current, grid)
+    delta = dir_to_delta[dir]
 
-    for _ in range(2):
-        sequence = getCodeSequence(sequence, dir_grid)
-    
-    return sequence"""
+    return grid[coordinates[0] + delta[0]][coordinates[1] + delta[1]]
 
-def checkSequence(grid, sequence, start, end):
-    for dir in sequence:
-        if dir != 'A':
-            delta = dir_to_delta[dir]
-            start = (start[0] + delta[0], start[1] + delta[1])
+def findNumSequences(start, end):
+    sequences = []
 
-            if not(0 <= start[0] < len(grid) and 0 <= start[1] < len(grid[0]) and grid[start[0]][start[1]] is not None):
-                return False
-    
-    return start == end
+    # dfs
+    stack = [(start, "")]
 
-def findPositionInGrid(grid, key):
-    for x in range(len(grid)):
-        for y, grid_key in enumerate(grid[x]):
-            if key == grid_key:
-                return (x, y)
-    
-    return None
+    possible_dirs = getPossibleDirections(num_grid, start, end)
 
-def getSequence(start, end):
-    delta = (end[0] - start[0], end[1] - start[1])
-    moves = ""
+    while stack:
+        pos, seq = stack.pop()
 
-    # horizontal moves
-    if delta[1] == 0:
-        if delta[0] > 0:
-            moves = 'v' * delta[0]
-        elif delta[0] < 0:
-            moves = '^' * (-delta[0])
-
-    # vertical moves
-    elif delta[0] == 0:
-        if delta[1] > 0:
-            moves = '>' * delta[1]
-        elif delta[1] < 0:
-            moves = '<' * (-delta[1])
-    
-    return moves
-
-def buildSequence(num_start, num_end):
-    # get info about the sequence
-    start = findPositionInGrid(num_grid, num_start)
-    end = findPositionInGrid(num_grid, num_end)
-    num_moves = getSequence(start, end)
-
-    # find the best valid sequence that minimize the moves
-    num_sequence = ""
-    dir_sequences = ["", "", ""]
-
-    minimum_moves = float("inf")
-
-    for possible_num_sequence in zip(list(num_moves), list(num_moves)):
-        if checkSequence(num_grid, possible_num_sequence, start, end):
-            possible_num_sequence = num_start + possible_num_sequence
-
-            still_valid = True
-
-            while still_valid:
-                for i in range(len(possible_num_sequence)-1):
-                    dir_sequences[0] = 0
-
-
-    return num_sequence + dir_sequences
-
-def getMove(delta):
-    if delta == (0, 1):
-        return '>'
-    
-    if delta == (0, -1):
-        return '<'
-    
-    if delta == (1, 0):
-        return 'v'
-    
-    if delta == (-1, 0):
-        return '^'
-
-def getDelta(move):
-    if move == '>':
-        return (0, 1)
-    
-    if move == '<':
-        return (0, -1)
-    
-    if move == 'v':
-        return (1, 0)
-    
-    if move == '^':
-        return (-1, 0)
-
-def decodeSequence(sequence):
-    # sequence = getDirSequence(
-    #           getDirSequence(
-    #               getNumSequence(code)
-    #           )
-    #        )
-
-    sequence_indexes = []
-    code = ""
-
-    # initial positions are set at 'A' for all robots
-    num_pos = findPositionInGrid(num_grid, 'A')
-    dir_pos1 = findPositionInGrid(dir_grid, 'A')
-    dir_pos2 = findPositionInGrid(dir_grid, 'A')
-
-    for i, dir_move2 in enumerate(sequence):
-        if dir_move2 != 'A':
-            delta = getDelta(dir_move2)
-            dir_pos2 = (dir_pos2[0] + delta[0], dir_pos2[1] + delta[1])
-
-        # dir robot 2 pressed 'A': dir robot 1 moves
+        if pos == end:
+            sequences.append(seq + 'A')
         else:
-            dir_move1 = dir_grid[dir_pos2[0]][dir_pos2[1]]
-
-            if dir_move1 != 'A':
-                delta = getDelta(dir_move1)
-                dir_pos1 = (dir_pos1[0] + delta[0], dir_pos1[1] + delta[1])
-
-            # dir robot 1 pressed 'A': num robot moves
-            else:
-                num_move = dir_grid[dir_pos1[0]][dir_pos1[1]]
-
-                if num_move != 'A':
-                    delta = getDelta(num_move)
-                    num_pos = (num_pos[0] + delta[0], num_pos[1] + delta[1])
-                
-                # num robot pressed 'A': new code digit
-                else:
-                    sequence_indexes.append(i)
-                    code += num_grid[num_pos[0]][num_pos[1]]
+            for dir in num_dir[pos]:
+                if dir in possible_dirs and nextPos(pos, dir, num_grid) is not None:
+                    stack.append((nextPos(pos, dir, num_grid), seq + dir))
     
-    digit_sequences = [sequence[0:sequence_indexes[0]+1]] + [sequence[sequence_indexes[i-1]+1:sequence_indexes[i]+1] for i in range(1, len(sequence_indexes))]
+    return sequences
+ 
 
-    return code, digit_sequences
+def findDirSequences(prev_seqs):
+    sequences = []
 
+    # dfs
+    stack = [('A', list(prev_seq), "") for prev_seq in prev_seqs]
+
+    while stack:
+        pos, remaining_dirs, seq = stack.pop()
+
+        if len(remaining_dirs) == 0:
+            sequences.append(seq)
+        else:
+            next_pos = remaining_dirs.pop(0)
+
+            for dir in dir_seq[pos][next_pos]:
+                stack.append((next_pos, remaining_dirs.copy(), seq + dir + 'A'))
+    
+    minimum = min(map(len, sequences))
+
+    return [seq for seq in sequences if len(seq) == minimum]
+
+
+def getTotalLength(code, dir_robots):
+    code = ['A'] + list(code)
+    sequences = []
+
+    total_length = 0
+
+    for i in range(1, len(code)):
+        sequences = findNumSequences(code[i-1], code[i])
+
+        for _ in range(dir_robots):
+            sequences = findDirSequences(sequences)
+        
+        total_length += len(sequences[0])
+    
+    return total_length
+
+def getTotalComplexity(codes, dir_robots):
+    complexity = 0
+
+    for code in codes:
+        complexity += int(code[:-1]) * getTotalLength(code, dir_robots)
+    
+    return complexity
 
 # Code
 
-start = findPositionInGrid(num_grid, '4')
-end = findPositionInGrid(num_grid, '6')
-
-print(decodeSequence("<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A"))
+print(getTotalComplexity(input_data, 2))
