@@ -14,145 +14,92 @@ input_data.pop()
 
 # Formatting
 
-num_grid = [['7', '8', '9'], ['4', '5', '6'], ['1', '2', '3'], [None, '0', 'A']]
-dir_grid = [[None, '^', 'A'], ['<', 'v', '>']]
-
-num_dir = {
-    '7': ">v",      '8': "<>v",     '9': "<v",
-    '4': ">^v",     '5': "<>^v",    '6': "<^v",
-    '1': ">^",      '2': "<>^v",    '3': "<^v",
-                    '0': ">^",      'A': "<^",
+num_grid = {
+    (0, 0): '7', (0, 1): '8', (0, 2): '9',
+    (1, 0): '4', (1, 1): '5', (1, 2): '6',
+    (2, 0): '1', (2, 1): '2', (2, 2): '3',
+                 (3, 1): '0', (3, 2): 'A',
 }
 
-dir_seq = {
-    'A': {'A': [""], '^': ["<"], '>': ["v"], 'v': ["<v", "v<"], '<': ["<v<", "v<<"]},
-    '^': {'A': [">"], '^': [""], '>': [">v", "v>"], 'v': ["v"], '<': ["v<"]},
-    '>': {'A': ["^"], '^': ["<^", "^<"], '>': [""], 'v': ["<"], '<': ["<<"]},
-    'v': {'A': [">^", "^>"], '^': ["^"], '>': [">"], 'v': [""], '<': ["<"]},
-    '<': {'A': [">^>", ">>^"], '^': [">^"], '>': [">>"], 'v': [">"], '<': [""]},
-}
-
-dir_to_delta = {
-    '>': (0, 1),
-    '<': (0, -1),
-    'v': (1, 0),
-    '^': (-1, 0)
+dir_grid = {
+                 (0, 1): '^', (0, 2): 'A',
+    (1, 0): '<', (1, 1): 'v', (1, 2): '>',
 }
 
 # Functions
 
-def exploreSequences(dir_robots):
-    moves = {} # {02: "<vA<AA>>^A"}
+def buildMoves(grid):
+    grid_moves = {}
 
-    pos = ['A'] * (dir_robots + 1) # [dir_pos, num_pos]
+    for button_pos, button_label in grid.items():
+        grid_moves[button_label] = {}
 
-    # dfs
-    stack = [(pos[0], 0)] # [(position, robot)]
+        # dfs
+        stack = [(button_pos, "", set())] # (current button, moves, visited buttons)
 
-    while stack:
-        current_pos, robot = stack.pop()
-
-
-def findCoordinates(pos, grid):
-    for y in range(len(grid)):
-        for x, cell in enumerate(grid[y]):
-            if cell == pos:
-                return (y, x)
-
-def getPossibleDirections(grid, start, end):
-    possible_dirs = set()
-
-    start = findCoordinates(start, grid)
-    end = findCoordinates(end, grid)
-
-    dy = end[0] - start[0]
-    dx = end[1] - start[1]
-
-    if dy > 0:
-        possible_dirs.add('v')
-    elif dy < 0:
-        possible_dirs.add('^')
+        while stack:
+            current, moves, visited = stack.pop()
+            visited.add(current)
+            
+            # add moves
+            if grid[current] not in grid_moves[button_label]:
+                grid_moves[button_label][grid[current]] = [moves]
+            else:
+                grid_moves[button_label][grid[current]].append(moves)
+            
+            # search neighbor buttons NWES
+            if (current[0] - 1, current[1]) in grid.keys() - visited:
+                stack.append(((current[0] - 1, current[1]), moves + "^", visited | {(current[0] - 1, current[1])}))
+            
+            if (current[0] + 1, current[1]) in grid.keys() - visited:
+                stack.append(((current[0] + 1, current[1]), moves + "v", visited | {(current[0] + 1, current[1])}))
+            
+            if (current[0], current[1] - 1) in grid.keys() - visited:
+                stack.append(((current[0], current[1] - 1), moves + "<", visited | {(current[0], current[1] - 1)}))
+            
+            if (current[0], current[1] + 1) in grid.keys() - visited:
+                stack.append(((current[0], current[1] + 1), moves + ">", visited | {(current[0], current[1] + 1)}))
     
-    if dx > 0:
-        possible_dirs.add('>')
-    elif dx < 0:
-        possible_dirs.add('<')
+    # remove longer moves
+    for button in grid_moves:
+        for target_button, moves in grid_moves[button].items():
+            minimum_move = len(min(moves, key=len))
+            grid_moves[button][target_button] = [move for move in moves if len(move) == minimum_move]
     
-    return possible_dirs
+    return grid_moves  
 
-def nextPos(current, dir, grid):
-    coordinates = findCoordinates(current, grid)
-    delta = dir_to_delta[dir]
+def length(start, end, robot=0):
+    if robot == 0:
+        moves_list = num_moves[start][end]
+    else:
+        moves_list = dir_moves[start][end]
 
-    return grid[coordinates[0] + delta[0]][coordinates[1] + delta[1]]
+    if robot == DIR_ROBOTS:
+        return len(moves_list[0]) + 1
 
-def findNumSequences(start, end):
-    sequences = []
+    lengths = []
 
-    # dfs
-    stack = [(start, "")]
+    for moves in moves_list:
+        moves = 'A' + moves + 'A'
+        total_length = sum(length(moves[i-1], moves[i], robot + 1) for i in range(1, len(moves)))
 
-    possible_dirs = getPossibleDirections(num_grid, start, end)
-
-    while stack:
-        pos, seq = stack.pop()
-
-        if pos == end:
-            sequences.append(seq + 'A')
-        else:
-            for dir in num_dir[pos]:
-                if dir in possible_dirs and nextPos(pos, dir, num_grid) is not None:
-                    stack.append((nextPos(pos, dir, num_grid), seq + dir))
+        lengths.append(total_length)
     
-    return sequences
- 
-
-def findDirSequences(prev_seqs):
-    sequences = []
-
-    # dfs
-    stack = [('A', list(prev_seq), "") for prev_seq in prev_seqs]
-
-    while stack:
-        pos, remaining_dirs, seq = stack.pop()
-
-        if len(remaining_dirs) == 0:
-            sequences.append(seq)
-        else:
-            next_pos = remaining_dirs.pop(0)
-
-            for dir in dir_seq[pos][next_pos]:
-                stack.append((next_pos, remaining_dirs.copy(), seq + dir + 'A'))
-    
-    minimum = min(map(len, sequences))
-
-    return [seq for seq in sequences if len(seq) == minimum]
+    return min(lengths)
 
 
-def getTotalLength(code, dir_robots):
-    code = ['A'] + list(code)
-    sequences = []
+def codeLength(code):
+    code = 'A' + code
+    return sum(length(code[i-1], code[i]) for i in range(1, len(code)))
 
-    total_length = 0
-
-    for i in range(1, len(code)):
-        sequences = findNumSequences(code[i-1], code[i])
-
-        for _ in range(dir_robots):
-            sequences = findDirSequences(sequences)
-        
-        total_length += len(sequences[0])
-    
-    return total_length
-
-def getTotalComplexity(codes, dir_robots):
-    complexity = 0
-
-    for code in codes:
-        complexity += int(code[:-1]) * getTotalLength(code, dir_robots)
-    
-    return complexity
+def getComplexity(codes):
+    return sum(int(code[:-1]) * codeLength(code) for code in codes)
 
 # Code
 
-print(getTotalComplexity(input_data, 2))
+DIR_ROBOTS = 2
+
+num_moves = buildMoves(num_grid)
+dir_moves = buildMoves(dir_grid)
+
+print(getComplexity(input_data))
