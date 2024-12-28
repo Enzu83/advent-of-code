@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // Get input as a string
@@ -14,6 +15,9 @@ func getInput(path string) string {
 	}
 
 	str_input := string(raw_input)
+
+	// Replace all CRLF by LF
+	str_input = strings.ReplaceAll(str_input, "\r\n", "\n")
 
 	// Remove last line break if there's one
 	if str_input[len(str_input)-1] == '\n' {
