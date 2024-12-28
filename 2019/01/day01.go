@@ -15,8 +15,14 @@ func getInput(path string) string {
 		panic(err)
 	}
 
-	str_input := string(raw_input) // Remove last line break for easier later splits
-	return str_input[:len(str_input)-1]
+	str_input := string(raw_input)
+
+	// Remove last line break if there's one
+	if str_input[len(str_input)-1] == '\n' {
+		str_input = str_input[:len(str_input)-1]
+	}
+
+	return str_input
 }
 
 func main() {
