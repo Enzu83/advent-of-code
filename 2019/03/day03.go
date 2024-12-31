@@ -51,29 +51,34 @@ func main() {
 func part1() {
 	input := strings.Split(getInput("input.txt"), "\n")
 
-	wire_1_locations := listPathLocations([2]int{0, 0}, strings.Split(input[0], ","))
-	wire_2_locations := listPathLocations([2]int{0, 0}, strings.Split(input[1], ","))
+	wire_1_locations := listPathLocations(strings.Split(input[0], ","))
+	wire_2_locations := listPathLocations(strings.Split(input[1], ","))
 
-	intersections := [][2]int{}
+	intersections := getIntersection(wire_1_locations, wire_2_locations)
 
-	for wire_1_position := range wire_1_locations {
-		_, exists := wire_2_locations[wire_1_position]
+	distance, _ := shortestDistanceAndSteps(intersections)
 
-		if exists {
-			intersections = append(intersections, wire_1_position)
-		}
-	}
-
-	fmt.Printf("Nearest intersection distance: %d", shortestDistance(intersections))
+	fmt.Printf("Nearest intersection distance: %d", distance)
 }
 
 // Code for part 2
 func part2() {
+	input := strings.Split(getInput("input.txt"), "\n")
 
+	wire_1_locations := listPathLocations(strings.Split(input[0], ","))
+	wire_2_locations := listPathLocations(strings.Split(input[1], ","))
+
+	intersections := getIntersection(wire_1_locations, wire_2_locations)
+
+	_, steps := shortestDistanceAndSteps(intersections)
+
+	fmt.Printf("Fewest steps to an intersection: %d", steps)
 }
+func listPathLocations(instructions []string) map[[2]int]int {
+	locations := make(map[[2]int]int)
+	point := [2]int{0, 0}
 
-func listPathLocations(position [2]int, instructions []string) map[[2]int]bool {
-	locations := make(map[[2]int]bool)
+	steps := 0
 
 	for _, instruction := range instructions {
 		delta := dir_to_delta[instruction[:1]]
@@ -84,14 +89,28 @@ func listPathLocations(position [2]int, instructions []string) map[[2]int]bool {
 		}
 
 		for range amount {
-			position[0] += delta[0]
-			position[1] += delta[1]
-
-			locations[position] = true
+			steps += 1
+			point[0] += delta[0]
+			point[1] += delta[1]
+			locations[point] = steps // steps from the start
 		}
 	}
 
 	return locations
+}
+
+func getIntersection(locations_1, locations_2 map[[2]int]int) map[[2]int]int {
+	intersections := make(map[[2]int]int) // intersections[point] = steps
+
+	for point := range locations_1 {
+		_, exists := locations_2[point]
+
+		if exists {
+			intersections[point] = locations_1[point] + locations_2[point]
+		}
+	}
+
+	return intersections
 }
 
 func manhattanDistance(point_1, point_2 [2]int) int {
@@ -99,20 +118,25 @@ func manhattanDistance(point_1, point_2 [2]int) int {
 	return max(point_1[0] - point_2[0], point_2[0] - point_1[0]) + max(point_1[1] - point_2[1], point_2[1] - point_1[1])
 }
 
-func shortestDistance(locations [][2]int) int {
+func shortestDistanceAndSteps(locations map[[2]int]int) (int, int) {
 	if len(locations) == 0 {
-		panic("Empty locations slice, cannot find minimum.")
+		panic("Empty locations, cannot find minimum distance.")
 	}
 
-	shortest_distance := manhattanDistance(locations[0], [2]int{0, 0})
+	shortest_distance := 0
+	shortest_steps := 0
 
-	for _, value := range locations {
-		distance := manhattanDistance(value, [2]int{0, 0})
+	for point := range locations {
+		distance := manhattanDistance(point, [2]int{0, 0})
 
-		if distance < shortest_distance {
+		if locations[point] < shortest_steps || shortest_steps == 0 {
+			shortest_steps = locations[point]
+		}
+
+		if distance < shortest_distance || shortest_distance == 0 {
 			shortest_distance = distance
 		}
 	}
 
-	return shortest_distance
+	return shortest_distance, shortest_steps
 }
