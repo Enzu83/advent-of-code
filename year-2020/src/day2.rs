@@ -16,11 +16,10 @@ fn read_input(input: &mut File) -> String {
     }
 }
 
-#[derive(Debug)]
 struct Policy {
     letter: char,
-    min: u32,
-    max: u32,
+    first: u32,
+    second: u32,
 }
 
 fn parse_policy_and_password(line: &str) -> (Policy, String) {
@@ -43,8 +42,8 @@ fn parse_policy_and_password(line: &str) -> (Policy, String) {
 
     let policy = Policy {
         letter,
-        min,
-        max,
+        first: min,
+        second: max,
     };
 
     (policy, password)
@@ -72,7 +71,7 @@ fn puzzle_1(mut input: File) {
     for (policy, password) in password_list {
         let occurrences = count_occurrences_in_string(&password, policy.letter);
 
-        if policy.min <= occurrences && occurrences <= policy.max {
+        if policy.first <= occurrences && occurrences <= policy.second {
             correct_passwords += 1
         }
     }
@@ -81,5 +80,18 @@ fn puzzle_1(mut input: File) {
 }
 
 fn puzzle_2(mut input: File) {
-    println!("{}", read_input(&mut input));
+    let password_list: Vec<(Policy, String)> = read_input(&mut input).lines()
+        .map(|line| parse_policy_and_password(line))
+        .collect();
+
+    let mut correct_passwords = 0;
+
+    for (policy, password) in password_list {
+        // only one of them should be the letter
+        if (password.chars().nth(policy.first as usize - 1).unwrap() == policy.letter) ^ (password.chars().nth(policy.second as usize - 1).unwrap() == policy.letter) {
+            correct_passwords += 1;
+        }
+    }
+
+    println!("Correct passwords: {}", correct_passwords);
 }
