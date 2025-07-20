@@ -1,14 +1,9 @@
 from math import floor, ceil, sqrt
 from matplotlib import pyplot as plt
 
-# Custom input
-input_data = """target area: x=20..30, y=-10..-5"""
-input_data = input_data.split('\n')
-
-
 # Input from file
-# input_data = open("input.txt").read().split('\n')
-# input_data.pop()
+input_data = open("input.txt").read().split('\n')
+input_data.pop()
 
 
 # Formatting

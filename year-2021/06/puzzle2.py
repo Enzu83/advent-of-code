@@ -1,8 +1,3 @@
-# Custom input
-input_data = """3,4,3,1,2"""
-input_data = input_data.split(',')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data = input_data[0].split(',')

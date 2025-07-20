@@ -1,17 +1,3 @@
-# Custom input
-input_data = """########
-#..O.O.#
-##@.O..#
-#...O..#
-#.#.O..#
-#...O..#
-#......#
-########
-
-<^^>>>vv<v>>v<<"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()

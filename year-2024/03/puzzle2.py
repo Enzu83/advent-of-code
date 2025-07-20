@@ -1,8 +1,3 @@
-# Custom input
-input_data = """xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))don't()mul(4,3)do()don't()do()mul(1,2)don't()mul(23,2)"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()

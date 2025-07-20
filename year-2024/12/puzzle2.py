@@ -1,11 +1,3 @@
-# Custom input
-input_data = """AAAA
-BBCD
-BBCC
-EEEC"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()

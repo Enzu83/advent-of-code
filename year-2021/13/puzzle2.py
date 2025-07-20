@@ -1,30 +1,5 @@
 import numpy as np
 
-# Custom input
-input_data = """6,10
-0,14
-9,10
-0,3
-10,4
-4,11
-6,0
-6,12
-4,1
-0,13
-10,12
-3,4
-3,0
-8,4
-1,10
-2,14
-8,10
-9,0
-
-fold along y=7
-fold along x=5"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()

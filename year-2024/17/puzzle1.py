@@ -1,13 +1,3 @@
-# Custom input
-input_data = """
-Register A: 729
-Register B: 0
-Register C: 0
-
-Program: 0,1,5,4,3,0"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()

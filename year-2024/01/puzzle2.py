@@ -1,13 +1,3 @@
-# Custom input
-input_data = """3   4
-4   3
-2   5
-1   3
-3   9
-3   3"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()

@@ -1,14 +1,3 @@
-# Custom input
-input_data = """start-A
-start-b
-A-c
-A-b
-b-d
-A-end
-b-end"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()

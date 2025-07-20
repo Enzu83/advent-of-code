@@ -1,14 +1,5 @@
 import numpy as np
 
-# Custom input
-input_data = """2199943210
-3987894921
-9856789892
-8767896789
-9899965678"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()

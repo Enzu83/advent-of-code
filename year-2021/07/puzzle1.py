@@ -1,10 +1,5 @@
 import numpy as np
 
-# Custom input
-input_data = """16,1,2,0,4,2,7,1,2,14"""
-input_data = input_data.split(',')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data = input_data[0].split(',')

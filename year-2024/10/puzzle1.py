@@ -1,15 +1,3 @@
-# Custom input
-input_data = """89010123
-78121874
-87430965
-96549874
-45678903
-32019012
-01329801
-10456732"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()

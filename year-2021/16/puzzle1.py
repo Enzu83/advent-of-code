@@ -1,8 +1,3 @@
-# Custom input
-input_data = """620080001611562C8802118E34"""
-input_data = input_data.split('\n')
-
-
 # Input from file
 input_data = open("input.txt").read().split('\n')
 input_data.pop()
