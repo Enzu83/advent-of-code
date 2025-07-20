@@ -22,6 +22,7 @@ fn main() {
         year_2020::day3::run_puzzle,
         year_2020::day4::run_puzzle,
         year_2020::day5::run_puzzle,
+        year_2020::day6::run_puzzle,
     ];
 
     if let Some(run) = runners.get(day as usize) {
