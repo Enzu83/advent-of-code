@@ -5,7 +5,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-# solution
+# read input file
 
 input=()
 
@@ -13,4 +13,6 @@ while IFS= read -r line; do
     input+=("$line")
 done < "$1"
 
-echo "${input[@]}"
+# solution
+
+echo "TODO"
