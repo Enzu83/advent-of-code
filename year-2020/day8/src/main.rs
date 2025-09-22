@@ -1,19 +1,22 @@
-use std::{collections::HashSet, fs::File, io::Read};
+use std::{collections::HashSet, error::Error, fs::File, io::Read};
 
-pub fn run_puzzle(puzzle: u8, input: File) {
-    match puzzle {
-        1 => puzzle_1(input),
-        2 => puzzle_2(input),
-        other => panic!("Unknown puzzle number: {}", other),
-    }
+fn main() -> Result<(), Box<dyn Error>> {
+    // read input
+    let input = read_input("inputs/day8.txt")?;
+    
+    // solve both parts
+    part_1(&input);
+    part_2(&input);
+
+    Ok(())
 }
 
-fn read_input(input: &mut File) -> String {
+fn read_input(file_path: &str) -> Result<String, Box<dyn Error>> {
+    let mut input = File::open(file_path)?;
+    
     let mut content = String::new();
-    match input.read_to_string(&mut content) {
-        Ok(_) => return content,
-        Err(e) => panic!("Couldn't read the input: {}", e),
-    }
+    input.read_to_string(&mut content)?;
+    Ok(content)
 }
 
 #[derive(Debug, Clone)]
@@ -87,8 +90,8 @@ fn execute_until_loop(instructions: &Vec<Instruction>) -> (i32, bool) {
     (accumulator, pointer == instructions.len())
 }
 
-fn puzzle_1(mut input: File) {
-    let instructions: Vec<Instruction> = read_input(&mut input)
+fn part_1(input: &String) {
+    let instructions: Vec<Instruction> = input
         .lines()
         .map(|line| decode_line(line))
         .collect();
@@ -98,11 +101,11 @@ fn puzzle_1(mut input: File) {
     println!("Value of accumulator before loop: {accumulator}");
 }
 
-fn puzzle_2(mut input: File) {
+fn part_2(input: &String) {
     // do the same thing as the first part but by switch a jmp to nop
     // see if it terminates by looking at how many instructions has been visited
 
-    let instructions: Vec<Instruction> = read_input(&mut input)
+    let instructions: Vec<Instruction> = input
         .lines()
         .map(|line| decode_line(line))
         .collect();

@@ -1,19 +1,22 @@
-use std::{fs::File, io::Read};
+use std::{error::Error, fs::File, io::Read};
 
-pub fn run_puzzle(puzzle: u8, input: File) {
-    match puzzle {
-        1 => puzzle_1(input),
-        2 => puzzle_2(input),
-        other => panic!("Unknown puzzle number: {}", other),
-    }
+fn main() -> Result<(), Box<dyn Error>> {
+    // read input
+    let input = read_input("inputs/day5.txt")?;
+    
+    // solve both parts
+    part_1(&input);
+    part_2(&input);
+
+    Ok(())
 }
 
-fn read_input(input: &mut File) -> String {
+fn read_input(file_path: &str) -> Result<String, Box<dyn Error>> {
+    let mut input = File::open(file_path)?;
+    
     let mut content = String::new();
-    match input.read_to_string(&mut content) {
-        Ok(_) => return content,
-        Err(e) => panic!("Couldn't read the input: {}", e),
-    }
+    input.read_to_string(&mut content)?;
+    Ok(content)
 }
 
 struct Seat {
@@ -46,8 +49,8 @@ fn decode_seat(seat_partition: &str) -> Seat {
     Seat::from(row, col)
 }
 
-fn get_seats(input: &mut File) -> Vec<Seat> {
-    read_input(input)
+fn get_seats(input: &String) -> Vec<Seat> {
+    input
         .lines()
         .map(|seat_partition| decode_seat(seat_partition))
         .collect()
@@ -65,17 +68,16 @@ fn print_seats(seats: &Vec<Seat>) {
     }
 }
 
-
-fn puzzle_1(mut input: File) {
-    let seats = get_seats(&mut input);
+fn part_1(input: &String) {
+    let seats = get_seats(input);
 
     let highest_id = seats.iter().map(|seat| seat.id()).max().unwrap();
 
     println!("Highest ID: {}", highest_id);
 }
 
-fn puzzle_2(mut input: File) {
-    let seats = get_seats(&mut input);
+fn part_2(input: &String) {
+    let seats = get_seats(input);
 
     // the empty seat can be seen in the print
     print_seats(&seats);

@@ -1,19 +1,22 @@
-use std::{collections::{HashMap, HashSet}, fs::File, io::Read};
+use std::{collections::{HashMap, HashSet}, error::Error, fs::File, io::Read};
 
-pub fn run_puzzle(puzzle: u8, input: File) {
-    match puzzle {
-        1 => puzzle_1(input),
-        2 => puzzle_2(input),
-        other => panic!("Unknown puzzle number: {}", other),
-    }
+fn main() -> Result<(), Box<dyn Error>> {
+    // read input
+    let input = read_input("inputs/day7.txt")?;
+    
+    // solve both parts
+    part_1(&input);
+    part_2(&input);
+
+    Ok(())
 }
 
-fn read_input(input: &mut File) -> String {
+fn read_input(file_path: &str) -> Result<String, Box<dyn Error>> {
+    let mut input = File::open(file_path)?;
+    
     let mut content = String::new();
-    match input.read_to_string(&mut content) {
-        Ok(_) => return content,
-        Err(e) => panic!("Couldn't read the input: {}", e),
-    }
+    input.read_to_string(&mut content)?;
+    Ok(content)
 }
 
 fn from_content_to_bag_info(content: &str) -> (String, u32) {
@@ -131,11 +134,11 @@ fn get_how_many_bags_are_contained(what_bags_contain: &mut HashMap<String, HashM
     number_of_bags
 }
 
-fn puzzle_1(mut input: File) {
+fn part_1(input: &String) {
     // indicate which bags (values) contain the bag (key)
     let mut where_bags_are_contained = HashMap::new();
 
-    read_input(&mut input)
+    input
         .lines()
         .for_each(|rule| decode_rule_for_where_bags_are_contained(&mut where_bags_are_contained, rule));
 
@@ -144,11 +147,11 @@ fn puzzle_1(mut input: File) {
     println!("Number of bags containing '{}': {}", desired_bag, get_bags_containers_for_a_bag(&where_bags_are_contained, desired_bag).len());
 }
 
-fn puzzle_2(mut input: File) {
+fn part_2(input: &String) {
     // indicate which bags (values) contain the bag (key)
     let mut what_bags_contain = HashMap::new();
 
-    read_input(&mut input)
+    input
         .lines()
         .for_each(|rule| decode_rule_for_what_bags_contain(&mut what_bags_contain, rule));
 

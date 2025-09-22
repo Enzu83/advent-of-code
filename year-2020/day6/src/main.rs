@@ -1,23 +1,26 @@
-use std::{collections::HashMap, fs::File, io::Read};
+use std::{collections::HashMap, error::Error, fs::File, io::Read};
 
-pub fn run_puzzle(puzzle: u8, input: File) {
-    match puzzle {
-        1 => puzzle_1(input),
-        2 => puzzle_2(input),
-        other => panic!("Unknown puzzle number: {}", other),
-    }
+fn main() -> Result<(), Box<dyn Error>> {
+    // read input
+    let input = read_input("inputs/day6.txt")?;
+    
+    // solve both parts
+    part_1(&input);
+    part_2(&input);
+
+    Ok(())
 }
 
-fn read_input(input: &mut File) -> String {
+fn read_input(file_path: &str) -> Result<String, Box<dyn Error>> {
+    let mut input = File::open(file_path)?;
+    
     let mut content = String::new();
-    match input.read_to_string(&mut content) {
-        Ok(_) => return content,
-        Err(e) => panic!("Couldn't read the input: {}", e),
-    }
+    input.read_to_string(&mut content)?;
+    Ok(content)
 }
 
-fn get_groups(input: &mut File) -> Vec<String> {
-    read_input(input)
+fn get_groups(input: &String) -> Vec<String> {
+    input
         .split("\n\n")
         .map(|s| s.to_string())
         .collect::<Vec<String>>()
@@ -35,8 +38,8 @@ fn count_group_answers(group: &[&str]) -> HashMap<char, usize> {
     group_answers
 }
 
-fn puzzle_1(mut input: File) {
-    let groups = get_groups(&mut input);
+fn part_1(input: &String) {
+    let groups = get_groups(input);
 
     let mut yes_answers: u32 = 0;
 
@@ -48,8 +51,8 @@ fn puzzle_1(mut input: File) {
     println!("Yes answers: {}", yes_answers);
 }
 
-fn puzzle_2(mut input: File) {
-    let groups = get_groups(&mut input);
+fn part_2(input: &String) {
+    let groups = get_groups(input);
 
     let mut yes_answers = 0;
 

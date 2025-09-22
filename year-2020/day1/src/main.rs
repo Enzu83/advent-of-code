@@ -1,23 +1,27 @@
-use std::{fs::File, io::Read};
+use std::{error::Error, fs::File, io::Read};
 
 use std::cmp::Ordering;
 use std::option::Option::{Some, None};
 
-pub fn run_puzzle(puzzle: u8, input: File) {
-    match puzzle {
-        1 => puzzle_1(input),
-        2 => puzzle_2(input),
-        other => panic!("Unknown puzzle number: {}", other),
-    }
+fn main() -> Result<(), Box<dyn Error>> {
+    // read input
+    let input = read_input("inputs/day1.txt")?;
+    
+    // solve both parts
+    part_1(&input);
+    part_2(&input);
+
+    Ok(())
 }
 
-fn read_input(input: &mut File) -> String {
+fn read_input(file_path: &str) -> Result<String, Box<dyn Error>> {
+    let mut input = File::open(file_path)?;
+    
     let mut content = String::new();
-    match input.read_to_string(&mut content) {
-        Ok(_) => return content,
-        Err(e) => panic!("Couldn't read the input: {}", e),
-    }
+    input.read_to_string(&mut content)?;
+    Ok(content)
 }
+
 
 fn find_sum_combination(expenses: &[i32], sum: i32) -> Option<(usize, usize)> {
     let mut left_idx = 0;
@@ -42,8 +46,8 @@ fn find_sum_combination(expenses: &[i32], sum: i32) -> Option<(usize, usize)> {
     }   
 }
 
-fn puzzle_1(mut input: File) {
-    let mut expenses: Vec<i32> = read_input(&mut input).lines()
+fn part_1(input: &String) {
+    let mut expenses: Vec<i32> = input.lines()
         .map(|s| s.parse::<i32>().unwrap())
         .collect();
 
@@ -58,8 +62,8 @@ fn puzzle_1(mut input: File) {
     );
 }
 
-fn puzzle_2(mut input: File) {
-    let mut expenses: Vec<i32> = read_input(&mut input).lines()
+fn part_2(input: &String) {
+    let mut expenses: Vec<i32> = input.lines()
         .map(|s| s.parse::<i32>().unwrap())
         .collect();
 

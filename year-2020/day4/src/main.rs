@@ -1,21 +1,23 @@
-use std::{fs::File, io::Read};
-
+use std::{error::Error, fs::File, io::Read};
 use std::option::Option::{Some, None};
 
-pub fn run_puzzle(puzzle: u8, input: File) {
-    match puzzle {
-        1 => puzzle_1(input),
-        2 => puzzle_2(input),
-        other => panic!("Unknown puzzle number: {}", other),
-    }
+fn main() -> Result<(), Box<dyn Error>> {
+    // read input
+    let input = read_input("inputs/day4.txt")?;
+    
+    // solve both parts
+    part_1(&input);
+    part_2(&input);
+
+    Ok(())
 }
 
-fn read_input(input: &mut File) -> String {
+fn read_input(file_path: &str) -> Result<String, Box<dyn Error>> {
+    let mut input = File::open(file_path)?;
+    
     let mut content = String::new();
-    match input.read_to_string(&mut content) {
-        Ok(_) => return content,
-        Err(e) => panic!("Couldn't read the input: {}", e),
-    }
+    input.read_to_string(&mut content)?;
+    Ok(content)
 }
 
 #[derive(Debug)]
@@ -148,18 +150,18 @@ fn get_passport_from_raw(raw_passport: &str) -> Passport {
     passport
 }
 
-fn get_passports_from_input(input: &mut File) -> Vec<Passport> {
+fn get_passports_from_input(input: &String) -> Vec<Passport> {
     let mut passports = Vec::new();
 
-    for raw_password in read_input(input).split("\n\n") {
+    for raw_password in input.split("\n\n") {
         passports.push(get_passport_from_raw(raw_password));
     }
 
     passports
 }
 
-fn puzzle_1(mut input: File) {
-    let passports = get_passports_from_input(&mut input);
+fn part_1(input: &String) {
+    let passports = get_passports_from_input(input);
 
     let mut valid_passports = 0;
 
@@ -172,8 +174,8 @@ fn puzzle_1(mut input: File) {
     println!("Valid passports: {}", valid_passports);
 }
 
-fn puzzle_2(mut input: File) {
-    let passports = get_passports_from_input(&mut input);
+fn part_2(input: &String) {
+    let passports = get_passports_from_input(input);
 
     let mut valid_passports = 0;
 

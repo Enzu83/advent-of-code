@@ -1,6 +1,4 @@
-[package]
-name = "year-2020"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
+[workspace]
+members = ["*"]
+exclude = ["target/", "inputs/", "other/"]
+resolver = "2"

@@ -1,22 +1,24 @@
+use std::{error::Error, fs::File, io::Read};
 use std::hash::Hash;
-use std::{fs::File, io::Read};
-
 use std::collections::HashSet;
 
-pub fn run_puzzle(puzzle: u8, input: File) {
-    match puzzle {
-        1 => puzzle_1(input),
-        2 => puzzle_2(input),
-        other => panic!("Unknown puzzle number: {}", other),
-    }
+fn main() -> Result<(), Box<dyn Error>> {
+    // read input
+    let input = read_input("inputs/day3.txt")?;
+    
+    // solve both parts
+    part_1(&input);
+    part_2(&input);
+
+    Ok(())
 }
 
-fn read_input(input: &mut File) -> String {
+fn read_input(file_path: &str) -> Result<String, Box<dyn Error>> {
+    let mut input = File::open(file_path)?;
+    
     let mut content = String::new();
-    match input.read_to_string(&mut content) {
-        Ok(_) => return content,
-        Err(e) => panic!("Couldn't read the input: {}", e),
-    }
+    input.read_to_string(&mut content)?;
+    Ok(content)
 }
 
 struct Point {
@@ -82,18 +84,16 @@ fn count_encountered_trees(trees: &HashSet<Point>, size: &Point, pattern: Point)
     encountered_trees
 }
 
-fn puzzle_1(mut input: File) {
-    let forest = read_input(&mut input);
-    let (trees, size) = get_forest_info(forest);
+fn part_1(input: &String) {
+    let (trees, size) = get_forest_info(input.clone());
 
     let encountered_trees = count_encountered_trees(&trees, &size, Point::from(1, 3));
 
     println!("Trees encountered: {}", encountered_trees);
 }
 
-fn puzzle_2(mut input: File) {
-    let forest = read_input(&mut input);
-    let (trees, size) = get_forest_info(forest);
+fn part_2(input: &String) {
+    let (trees, size) = get_forest_info(input.clone());
 
     let patterns = vec![
         Point::from(1, 1),
