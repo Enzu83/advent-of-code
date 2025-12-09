@@ -62,29 +62,16 @@ impl Dial {
     }
 
     pub fn rotate(&mut self, instruction: &str) -> Result<(), Box<dyn Error>>{
-        let mut rotation = self.decode_instruction(instruction)?;
+        let rotation = self.decode_instruction(instruction)?;
 
-        if rotation.abs() >= 100 {
-            println!("{}, {}, {}", rotation, rotation % 100, (rotation / 100).abs());
-        }
-        // handle 360 rotation
-        if rotation.abs() >= 100 {
-            let full_rotations = (rotation / 100).abs();
-            self.passed_zero += full_rotations;
+        for _ in 0..rotation.abs() {
+            self.position = (self.position + rotation.signum()).rem_euclid(100);
 
-            rotation %= 100; // remaining rotation that will change the final position of the dial
+            if self.position == 0 {
+                self.passed_zero += 1;
+            }
         }
 
-        self.position += rotation; // apply rotation
-
-        // check if the dial passed 0
-        if self.position <= 0 || self.position >= 100 {
-            self.passed_zero += 1;
-        }
-
-        self.position = self.position.rem_euclid(100); // keep the position in the [0, 99]
-
-        // check if the dial stopped at 0
         if self.position == 0 {
             self.pointed_zero += 1;
         }
@@ -108,6 +95,7 @@ mod test {
     #[test]
     pub fn position_after_rotation() -> Result<(), Box<dyn Error>> {
         let mut dial = Dial::new();
+        dial.init();
 
         dial.rotate("R45")?;
         assert_eq!(dial.position, 95);
@@ -127,6 +115,8 @@ mod test {
     #[test]
     pub fn below_zero() -> Result<(), Box<dyn Error>> {
         let mut dial = Dial::new();
+        dial.init();
+
         dial.rotate("L65")?;
 
         assert_eq!(dial.passed_zero, 1);
@@ -137,6 +127,8 @@ mod test {
     #[test]
     pub fn above_zero() -> Result<(), Box<dyn Error>> {
         let mut dial = Dial::new();
+        dial.init();
+
         dial.rotate("R65")?;
 
         assert_eq!(dial.passed_zero, 1);
@@ -148,6 +140,8 @@ mod test {
     #[test]
     pub fn at_zero() -> Result<(), Box<dyn Error>> {
         let mut dial = Dial::new();
+        dial.init();
+
         dial.rotate("R50")?;
 
         assert_eq!(dial.passed_zero, 1);
@@ -165,6 +159,8 @@ mod test {
     #[test]
     pub fn multiple_rotations() -> Result<(), Box<dyn Error>> {
         let mut dial = Dial::new();
+        dial.init();
+
         dial.rotate("R150")?;
 
         assert_eq!(dial.passed_zero, 2);
@@ -186,7 +182,6 @@ mod test {
     #[test]
     pub fn rotation_from_zero() -> Result<(), Box<dyn Error>> {
         let mut dial = Dial::new();
-        dial.position = 0;
 
         dial.rotate("R150")?;
 
