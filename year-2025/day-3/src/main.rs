@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::collections::VecDeque;
 use std::env;
 use std::fs::File;
@@ -24,11 +25,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|bank| Bank::from(bank))
         .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
 
-    let sum_of_largest_joltage: u32 = banks.iter()
+    let sum_of_largest_joltage: u64 = banks.iter()
         .map(|b| b.largest_joltage(2))
         .sum();
 
-    println!("Sum of largest voltage: {}", sum_of_largest_joltage);
+    println!("Sum of largest voltage (2): {}", sum_of_largest_joltage);
+
+    let sum_of_largest_joltage_12: u64 = banks.iter()
+            .map(|b| b.largest_joltage(12))
+            .sum();
+
+    println!("Sum of largest voltage (12): {}", sum_of_largest_joltage_12);
 
     Ok(())
 }
@@ -53,22 +60,37 @@ impl Bank {
         Self::new(batteries)
     }
 
-    pub fn largest_joltage(&self, length: usize) -> u32 {
+    pub fn largest_joltage(&self, length: usize) -> u64 {
         let mut max_joltage = 0;
+        let mut remaining = argmax(&self.batteries[..self.batteries.len()-length+1]);
 
+        while !remaining.is_empty() {
+            let (idx, value) = remaining.pop_front().unwrap();
+            let value_length = format!("{value}").len();
 
+            for (digit_idx, digit) in argmax(&self.batteries[idx+1..self.batteries.len()-length+1+value_length]) {
+                let new_value = format!("{value}{digit}").parse().unwrap();
+                
+                if format!("{new_value}").len() == length {
+                    max_joltage = max(max_joltage, new_value);
+                } else {
+                    remaining.push_back((idx+1+digit_idx, new_value));
+                }
+                
+            }
+        }
 
         max_joltage
     }
 }
 
-fn argmax(vec: &[u32]) -> Vec<usize> {
+fn argmax(vec: &[u32]) -> VecDeque<(usize, u64)> {
     let max = vec.iter().max().unwrap();
     
     vec.iter()
         .enumerate()
         .filter(|(_, v)| *v == max)
-        .map(|(i , _)| i)
+        .map(|(i, v)| (i, *v as u64))
         .collect()
 }
 
@@ -96,7 +118,8 @@ mod test {
 
     #[test]
     fn largest_joltage_12() {
-        let bank = Bank::new(vec![1, 2, 3]);
+        let bank = Bank::new(vec![8, 1, 8, 1, 8, 1, 9, 1, 1, 1, 1, 2, 1, 1, 1]).unwrap();
+        assert_eq!(bank.largest_joltage(12), 888911112111);
     }
 
     #[test]
@@ -111,10 +134,16 @@ mod test {
             .map(|bank| Bank::from(bank))
             .collect::<Result<Vec<_>, Box<dyn Error>>>().unwrap();
 
-        let sum_of_largest_joltage: u32 = banks.iter()
+        let sum_of_largest_joltage: u64 = banks.iter()
             .map(|b| b.largest_joltage(2))
             .sum();
 
         assert_eq!(sum_of_largest_joltage, 357);
+
+        let sum_of_largest_joltage_12: u64 = banks.iter()
+            .map(|b| b.largest_joltage(12))
+            .sum();
+
+        assert_eq!(sum_of_largest_joltage_12, 3121910778619);
     }
 }
