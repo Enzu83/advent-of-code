@@ -1,4 +1,4 @@
-input.txt
+*.txt
 */target
 .vscode
 .DS_Store
