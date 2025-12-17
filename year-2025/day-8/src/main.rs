@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs::File;
 use std::io::Read;
@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     map.compute_distances();
     
     
-    for _ in 0..1001 {
+    for _ in 0..1000 {
         map.make_connection();
     }
 
@@ -94,6 +94,7 @@ impl Map {
     }
 
     pub fn compute_distances(&mut self) {
+        let mut hashmap_distances = HashMap::new();
         for jbox_1 in self.jboxes.iter() {
             for jbox_2 in self.jboxes.iter() {
                 if jbox_1 == jbox_2 {
@@ -101,9 +102,15 @@ impl Map {
                 }
 
                 let dist = jbox_1.distance(jbox_2);
-                self.distances.push(((jbox_1.clone(), jbox_2.clone()), dist));
+
+                if !hashmap_distances.contains_key(&(jbox_1.clone(), jbox_2.clone())) && !hashmap_distances.contains_key(&(jbox_2.clone(), jbox_1.clone())) {
+                    hashmap_distances.insert((jbox_1.clone(), jbox_2.clone()), dist);
+                }
+                
             }
         }
+
+        self.distances = hashmap_distances.into_iter().collect();
 
         // sort by distances in descending order
         self.distances.sort_by(|(_, dist_1), (_, dist_2)| dist_1.partial_cmp(dist_2).unwrap());
@@ -116,20 +123,32 @@ impl Map {
         }
 
         let (jbox_1, jbox_2) = self.find_closest_not_connected_jboxes();
-        
+
+        // don't connect the jboxes if they already belong to a circuit
+        if self.circuits.iter().any(|s| s.contains(&jbox_1) && s.contains(&jbox_2)) {
+            return;
+        }
+
         self.connections.insert((jbox_1.clone(), jbox_2.clone()));
         self.connections.insert((jbox_2.clone(), jbox_1.clone()));
 
-        for (_, circuit) in self.circuits.iter_mut().enumerate() {            
-            if circuit.contains(&jbox_1) || circuit.contains(&jbox_2) {
-                circuit.insert(jbox_1.clone());
-                circuit.insert(jbox_2.clone());
-                return;
-            }
+        match (self.get_jbox_circuit(&jbox_1), self.get_jbox_circuit(&jbox_2)) {
+            (Some(idx_1), Some(idx_2)) => {
+                let c_2 = self.circuits[idx_2].clone();
+                self.circuits[idx_1].extend(c_2);
+                self.circuits.remove(idx_2);
+            },
+            (Some(idx_1), None) => {
+                self.circuits[idx_1].insert(jbox_2);
+            },
+            (None, Some(idx_2)) => {
+                self.circuits[idx_2].insert(jbox_1);
+            },
+            (None, None) => {
+                let c = HashSet::from([jbox_1, jbox_2]);
+                self.circuits.push(c);
+            },
         }
-
-        let new_circuit = HashSet::from([jbox_1.clone(), jbox_2.clone()]);
-        self.circuits.push(new_circuit);
     }
 
     fn find_closest_not_connected_jboxes(&mut self) -> (JBox, JBox) {
@@ -140,6 +159,16 @@ impl Map {
         }
 
         jboxes
+    }
+
+    fn get_jbox_circuit(&self, jbox: &JBox) -> Option<usize> {
+        for (idx, circuit) in self.circuits.iter().enumerate() {
+            if circuit.contains(jbox) {
+                return Some(idx)
+            }
+        }
+
+        None
     }
 }
 
@@ -180,15 +209,8 @@ mod test {
         map.compute_distances();
         
         
-        for _ in 0..11 {
+        for _ in 0..10 {
             map.make_connection();
-        }
-
-        println!("{:?}", &map.distances[0..30]);
-        println!();
-
-        for c in map.circuits.iter() {
-            println!("{:?}", c);
         }
 
         map.circuits.sort_by_key(|s| s.len());
