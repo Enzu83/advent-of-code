@@ -10,30 +10,34 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+fn get_digits(line: &str) -> Vec<(usize, u32)> {
+    line.chars()
+        .enumerate()
+        .filter_map(|(i, c)| c.to_digit(10).map(|d| (i, d)))
+        .collect()
+}
+
 fn get_first_and_last_digit(line: &str) -> (u32, u32) {
-    let mut first = None;
-    let mut second = None;
+    let digits = get_digits(line);
 
-    for char in line.chars() {
-        if let Some(digit) = char.to_digit(10) {
-            if first.is_none() {
-                first = Some(digit);
-            }
+    let first = digits.first()
+        .map(|(_, d)| d)
+        .unwrap()
+        .clone();
 
-            second = Some(digit);
-        }
-    }
+    let second = digits.last()
+        .map(|(_, d)| d)
+        .unwrap()
+        .clone();
 
-    (first.unwrap(), second.unwrap())
+    (first, second)
 }
 
 fn part_1(input: &str) {
-    let mut sum = 0;
-
-    for line in input.lines() {
-        let digits = get_first_and_last_digit(line);
-        sum += format!("{}{}", digits.0, digits.1).parse::<u32>().unwrap();
-    }
+    let sum: u32 = input.lines()
+        .map(|l| get_first_and_last_digit(l))
+        .map(|(d1, d2) | format!("{}{}", d1, d2).parse::<u32>().unwrap())
+        .sum();
 
     println!("Sum of calibration values: {}", sum);
 }
